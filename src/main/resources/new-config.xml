@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC
+        "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration><!-- 核心配置 -->
+    <properties resource="db.properties">
+        <property name="driver" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/mybatis?useSSL=false&amp;useUnicode=true&amp;characterEncoding=utf-8"/>
+        <property name="username" value="root"/>
+        <property name="password" value="123456"/>
+    </properties>
+    <settings>
+        <setting name="cacheEnabled" value="true"/>
+    </settings>
+    <typeAliases>
+        <typeAlias alias="user" type="com.cnxf.entity.User"/>
+        <package name="com.cnxf.entity"/>
+    </typeAliases>
+    <environments default="development"><!-- 多个环境配置 -->
+        <environment id="development"><!-- 这里只配置单个环境 -->
+            <transactionManager type="JDBC"/><!-- 事务管理器 -->
+            <dataSource type="POOLED"><!-- 数据库相关的配置 -->
+                <property name="driver" value="${driver}"/><!-- 数据库驱动 -->
+                <property name="url" value="${url}"/><!-- 数据库url -->
+                <property name="username" value="${username}"/><!-- 数据库用户名 -->
+                <property name="password" value="${password}"/><!-- 数据库密码 -->
+            </dataSource>
+        </environment>
+    </environments>
+
+    <mappers><!-- mappers标签中的为所有mapper.xml的路径 -->
+        <package name="com.cnxf.dao"/>
+    </mappers>
+</configuration>

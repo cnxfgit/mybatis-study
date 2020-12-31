@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cnxf.dao.UserMapper">
+    <select id="selectAllUser" resultType="com.cnxf.entity.User">
+        SELECT * FROM user
+    </select>
+
+    <select id="selectById" resultType="com.cnxf.entity.User">
+        SELECT * FROM user WHERE id=#{id}
+    </select>
+    
+    <insert id="insertUser" parameterType="com.cnxf.entity.User">
+        INSERT INTO user VALUES (#{id},#{username},#{password})
+    </insert>
+
+    <insert id="addUser">
+        INSERT INTO user VALUES (#{id},#{username},#{password})
+    </insert>
+    
+    <update id="updateUser" parameterType="com.cnxf.entity.User">
+        UPDATE user SET id=#{id},username=#{username},password=#{password} where id=#{id}
+    </update>
+
+    <delete id="deleteUserById" parameterType="java.lang.Long">
+        DELETE FROM user WHERE id=#{id}
+    </delete>
+
+</mapper>

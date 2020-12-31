@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace为映射的mapper接口的全路径名称 -->
+
+<mapper namespace="com.cnxf.dao.UserMapper">
+
+    <cache type="org.mybatis.caches.ehcache.EhcacheCache"/>
+
+    <select id="selectAllUser" resultType="com.cnxf.entity.User">
+        SELECT * FROM user
+    </select>
+
+    <select id="selectById" resultType="com.cnxf.entity.User">
+        SELECT * FROM user WHERE id=#{id}
+    </select>
+    
+    <insert id="insertUser" parameterType="com.cnxf.entity.User">
+        INSERT INTO user VALUES (#{id},#{username},#{password})
+    </insert>
+
+    <insert id="addUser">
+        INSERT INTO user VALUES (#{id},#{username},#{password})
+    </insert>
+
+    <update id="updateUser" parameterType="com.cnxf.entity.User">
+        UPDATE user SET id=#{id},username=#{username},password=#{password} where id=#{id}
+    </update>
+
+    <delete id="deleteUserById" parameterType="java.lang.Long">
+        DELETE FROM user WHERE id=#{id}
+    </delete>
+
+    <!-- 参数案例 -->
+    <select id="selectByName" resultType="com.cnxf.entity.User">
+        SELECT * FROM user WHERE username=#{as}
+    </select>
+
+    <insert id="insertByMap" parameterType="map">
+        INSERT INTO user VALUES (#{id},#{username},#{password})
+    </insert>
+
+    <!-- 结果集案例 -->
+    <select id="selectInMap" resultType="map">
+        SELECT * FROM user WHERE id=#{id}
+    </select>
+
+    <select id="selectInMDUser" resultType="com.cnxf.entity.MDUser">
+        SELECT id,username,password as mdPassword FROM user WHERE id=#{id}
+    </select>
+
+    <resultMap id="selectMDUser" type="com.cnxf.entity.MDUser">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="mdPassword" column="password"/>
+    </resultMap>
+
+    <select id="selectInResultMap" resultMap="selectMDUser">
+        SELECT * FROM user WHERE id=#{id}
+    </select>
+
+    <!-- 多结果集映射 -->
+    <resultMap id="selectRolesUserMap" type="com.cnxf.entity.RolesUser">
+        <constructor>
+            <arg column="id" javaType="long"></arg>
+            <arg column="name" javaType="string"></arg>
+        </constructor>
+        <id property="id" column="id"></id>
+        <result property="username" column="username"></result>
+        <result property="password" column="password"></result>
+        <association property="userStore" javaType="com.cnxf.entity.UserStore">
+            <result property="userId" column="user_id"></result>
+            <result property="name" column="name"></result>
+        </association>
+        <collection property="roles" javaType="ArrayList" ofType="com.cnxf.entity.Role">
+            <id property="id" column="role_id"></id>
+            <result property="roleName" column="role_name"></result>
+        </collection>
+    </resultMap>
+
+    <select id="selectRolesUser" resultMap="selectRolesUserMap">
+        SELECT u.*,r.id as role_id,r.role_name,us.name FROM user u
+        LEFT JOIN user_role ur on u.id=ur.user_id
+        LEFT JOIN role r on ur.role_id = r.id
+		LEFT JOIN user_store us on us.user_id = u.id
+        WHERE u.id = #{id}
+    </select>
+
+    <!-- 嵌套select -->
+    <resultMap id="selectRolesUserMap2" type="com.cnxf.entity.RolesUser">
+        <id property="id" column="id"></id>
+        <result property="username" column="username"></result>
+        <result property="password" column="password"></result>
+        <association property="userStore" javaType="com.cnxf.entity.UserStore" select="selectStoreByUserId" column="id"></association>
+        <collection property="roles" javaType="ArrayList" column="id" select="selectRoleByUserId" ofType="com.cnxf.entity.Role"></collection>
+    </resultMap>
+
+    <select id="selectStoreByUserId" resultType="com.cnxf.entity.UserStore">
+        SELECT * FROM user_store WHERE user_id=#{id}
+    </select>
+
+    <select id="selectRoleByUserId" resultType="com.cnxf.entity.Role">
+        SELECT r.id,r.role_name as roleName FROM role r
+		LEFT JOIN user_role ur ON ur.role_id=r.id
+		LEFT JOIN user u ON u.id=ur.user_id
+        WHERE u.id=#{id}
+    </select>
+
+    <select id="selectRolesUser2" resultMap="selectRolesUserMap2">
+        SELECT * FROM user
+        WHERE id = #{id}
+    </select>
+
+    <!-- 动态sql案例 -->
+    <sql id="userField">
+        id,username
+    </sql>
+
+    <select id="selectAllBySql" resultType="com.cnxf.entity.User">
+        SELECT <include refid="userField"/> FROM user
+    </select>
+
+    <select id="selectOneBySql" resultType="com.cnxf.entity.User">
+        SELECT <include refid="userField"/> FROM user WHERE id=#{id}
+    </select>
+
+    <select id="selectByLimit" resultType="com.cnxf.entity.User">
+        SELECT <include refid="userField"/> FROM user
+        <if test="start!=null and size!=null">
+            limit #{start},#{size}
+        </if>
+    </select>
+    
+    <select id="selectByChoose" resultType="com.cnxf.entity.User">
+        SELECT <include refid="userField"/> FROM user
+        <choose>
+            <when test="start==null and size!=null">
+                limit  #{size}
+            </when>
+            <when test="start!=null and size!=null">
+                limit #{start},#{size}
+            </when>
+            <otherwise>
+                limit 5
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectNotByWhere" resultType="com.cnxf.entity.User">
+        SELECT <include refid="userField"/> FROM user
+        WHERE
+        <if test="id!=null">
+            id>#{id}
+        </if>
+        <if test="username!=null">
+            AND username like concat('%',#{username},'%')
+        </if>
+    </select>
+
+    <select id="selectByWhere" resultType="com.cnxf.entity.User">
+        SELECT <include refid="userField"/> FROM user
+        <where>
+        <if test="id!=null">
+            id>#{id}
+        </if>
+        <if test="username!=null">
+            AND username like concat('%',#{username},'%')
+        </if>
+        </where>
+    </select>
+
+    <update id="updateBySet">
+        UPDATE user
+        <set>
+            <if test="username!=null">
+                username=#{username},
+            </if>
+            <if test="password!=null">
+                password=#{password},
+            </if>
+        </set>
+        WHERE id=#{id}
+    </update>
+
+    <select id="selectByTrim" resultType="com.cnxf.entity.User">
+        SELECT <include refid="userField"/> FROM user
+        <trim prefix="WHERE" prefixOverrides="and |or ">
+            <if test="id!=null">
+                id>#{id}
+            </if>
+            <if test="username!=null">
+                AND username like concat('%',#{username},'%')
+            </if>
+        </trim>
+    </select>
+
+    <update id="updateByTrim">
+        UPDATE user
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="username!=null">
+                username=#{username},
+            </if>
+            <if test="password!=null">
+                password=#{password},
+            </if>
+        </trim>
+        WHERE id=#{id}
+    </update>
+
+    <select id="selectByForeach" resultType="com.cnxf.entity.User">
+        SELECT * FROM user
+        WHERE id IN
+        <foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <update id="insertByForeach">
+        INSERT INTO user VALUES
+        <foreach collection="users" item="item" index="index" open="(" separator="),(" close=")">
+            #{item.id},#{item.username},#{item.password}
+        </foreach>
+    </update>
+
+    <select id="selectByBind" resultType="com.cnxf.entity.User">
+        <bind name="id" value="'%菜%'"/>
+        SELECT * FROM user
+        WHERE username like #{id}
+    </select>
+</mapper>
